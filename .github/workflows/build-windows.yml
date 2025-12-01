@@ -89,7 +89,7 @@ jobs:
 
         echo Installazione librerie Python...
         "%PYTHON_EXE%" -m pip install --upgrade pip
-        "%PYTHON_EXE%" -m pip install requests beautifulsoup4 httpx tqdm rich m3u8
+        "%PYTHON_EXE%" -m pip install requests beautifulsoup4 httpx tqdm rich m3u8 ua-generator pycryptodome fake-useragent unidecode certifi charset-normalizer idna urllib3 anyio sniffio h11 httpcore socksio
 
         echo.
         echo ========================================
