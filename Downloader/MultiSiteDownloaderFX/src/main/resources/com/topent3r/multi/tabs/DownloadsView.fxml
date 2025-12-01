@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.topent3r.multi.controllers.DownloadsController">
+
+    <top>
+        <HBox spacing="8" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Cartella:"/>
+                <Label fx:id="downloadDirLabel"/>
+                <Button fx:id="chooseDirBtn" text="Scegli cartella..."/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Velocità download:"/>
+                <ComboBox fx:id="speedComboBox" prefWidth="150"/>
+            </children>
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="downloadsTable">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="titleColumn" text="Titolo" prefWidth="200"/>
+                <TableColumn fx:id="qualityColumn" text="Qualità" prefWidth="120"/>
+                <TableColumn fx:id="seasonColumn" text="Stagione" prefWidth="100"/>
+                <TableColumn fx:id="episodesColumn" text="Episodi" prefWidth="220"/>
+                <TableColumn fx:id="statusColumn" text="Stato" prefWidth="120"/>
+                <TableColumn fx:id="speedColumn" text="Velocità" prefWidth="120"/>
+                <TableColumn fx:id="progressColumn" text="Progresso" prefWidth="160"/>
+                <TableColumn fx:id="actionsColumn" text="Azioni" prefWidth="160"/>
+            </columns>
+            <placeholder><Label text="Nessun download in coda"/></placeholder>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="8">
+            <children>
+                <Button fx:id="startSelectedBtn" text="Avvia selezionato"/>
+                <Button fx:id="cancelSelectedBtn" text="Annulla selezionato"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="removeCompletedBtn" text="Rimuovi completati"/>
+            </children>
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+        </HBox>
+    </bottom>
+</BorderPane>

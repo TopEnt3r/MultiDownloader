@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.topent3r.multi.controllers.RootController">
+
+    <top>
+        <HBox alignment="CENTER" style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-padding: 12;">
+            <Label text="MultiDownloader" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Label text="  •  Powered by @QuantixDev" style="-fx-font-size: 14; -fx-text-fill: rgba(255,255,255,0.8);"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="rootTabPane" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab text="M3U Downloader"/>
+                <Tab text="StreamingCommunity"/>
+                <Tab text="RaiPlay"/>
+                <Tab text="MediasetInfinity"/>
+                <Tab text="Crunchyroll"/>
+                <Tab text="AnimeUnity"/>
+                <Tab text="AltaDefinizione"/>
+                <Tab text="GuardaSerie"/>
+                <Tab text="AnimeWorld"/>
+                <Tab text="Downloads"/>
+                <Tab text="Settings"/>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>
+

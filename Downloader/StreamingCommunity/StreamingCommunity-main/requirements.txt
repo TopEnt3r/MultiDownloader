@@ -1,0 +1,16 @@
+httpx
+bs4
+rich
+tqdm
+m3u8
+psutil
+unidecode
+curl_cffi
+jsbeautifier
+pathvalidate
+pycryptodomex
+ua-generator
+qbittorrent-api
+pyTelegramBotAPI
+pywidevine
+python-dotenv

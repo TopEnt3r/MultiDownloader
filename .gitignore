@@ -1,0 +1,84 @@
+# Flutter/Dart
+**/build/
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.flutter-plugins-dependencies.json
+**/.flutter-plugins
+**/.pub-cache/
+**/.pub/
+.dart_tool/
+.packages
+.pub-cache/
+
+# IntelliJ/Android Studio
+**/.idea/
+**/*.iml
+
+# VS Code
+**/.vscode/
+
+# Xcode/iOS
+**/Pods/
+**/DerivedData/
+**/.symlinks/
+**/Flutter/ephemeral/
+**/*.xcworkspace/
+**/*.xcodeproj/project.xcworkspace/
+
+# Android
+**/.gradle/
+**/local.properties
+**/gradle-wrapper.jar
+**/captures/
+
+# macOS
+**/Flutter/ephemeral/
+
+# Windows
+**/x64/
+**/x86/
+**/arm*/
+
+# Linux
+**/cmake-build-*
+
+# Logs
+**/*.log
+
+# Flutter tooling
+flutter_export_environment.sh
+
+# Java/Maven
+**/target/
+**/*.class
+**/.settings/
+**/.classpath
+**/.project
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/
+
+# Build outputs
+WindowsBuild/
+*.zip
+*.exe
+
+# Large files
+*.mkv
+*.mp4
+*.avi
+*.dll
+*.so
+*.dylib
+**/modules
+**/jdk*/
+**/FFmpeg/
+**/ffmpeg/
+**/Video/
+**/runtime/
+**/*SELFCONTAINED*/
+**/TopEnt3rM3UDownloaderFX/

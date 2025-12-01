@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.topent3r.multi.controllers.GuardaSerieController">
+
+    <top>
+        <HBox spacing="8" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Cerca su GuardaSerie:"/>
+                <TextField fx:id="searchField" promptText="Cerca titolo..." HBox.hgrow="ALWAYS"/>
+                <Button fx:id="searchButton" text="Cerca"/>
+            </children>
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="resultsTable">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="titleColumn" text="Titolo"/>
+                <TableColumn fx:id="typeColumn" text="Tipo"/>
+                <TableColumn fx:id="yearColumn" text="Anno"/>
+            </columns>
+            <placeholder><Label text="Nessun risultato"/></placeholder>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="8">
+            <children>
+                <Button fx:id="downloadButton" text="Scarica selezionato" disable="true"/>
+                <Label text="Seleziona un elemento e clicca per aggiungerlo al tab Downloads"/>
+            </children>
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+        </HBox>
+    </bottom>
+</BorderPane>
+

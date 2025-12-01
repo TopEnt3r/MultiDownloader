@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.fxml.FXML?>
+<?import javafx.fxml.FXMLLoader?>
+<?import javafx.fxml.JavaFXBuilderFactory?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <fx:include source="/com/topent3r/multi/m3u/MainView.fxml" />
+    </center>
+</BorderPane>

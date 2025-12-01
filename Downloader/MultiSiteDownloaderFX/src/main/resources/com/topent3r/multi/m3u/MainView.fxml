@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.topent3r.multi.m3u.controllers.MainController">
+
+    <!-- TOP: toolbar (URL + carica/esporta + cartella) -->
+    <top>
+        <VBox spacing="8" BorderPane.alignment="CENTER">
+            <children>
+                <HBox spacing="8">
+                    <children>
+                        <Label text="URL M3U:"/>
+                        <TextField fx:id="urlField" promptText="http://...m3u" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="loadBtn"   text="Carica"      onAction="#onLoad"/>
+                        <Button fx:id="exportBtn" text="Esporta CSV" onAction="#onExport"/>
+                    </children>
+                    <padding>
+                        <Insets top="8" right="8" bottom="8" left="8"/>
+                    </padding>
+                </HBox>
+
+                <HBox spacing="8">
+                    <children>
+                        <TextField fx:id="searchField" promptText="Filtra..." onKeyReleased="#onSearchChanged" HBox.hgrow="ALWAYS"/>
+                        <ToggleButton fx:id="hoverSelectToggle" text="Selezione rapida (hover)"/>
+                        <Pane HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="downloadSelectedBtn" text="Scarica selezionato" onAction="#onDownloadSelected"/>
+                    </children>
+                    <padding>
+                        <Insets top="0" right="8" bottom="8" left="8"/>
+                    </padding>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
+
+    <!-- CENTER: tab con le tre tabelle -->
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab fx:id="tabAllTab" text="Tutti">
+                    <content>
+                        <TableView fx:id="tableAll">
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                            <placeholder><Label text="Nessun elemento"/></placeholder>
+                        </TableView>
+                    </content>
+                </Tab>
+
+                <Tab fx:id="tabLiveTab" text="Live">
+                    <content>
+                        <TableView fx:id="tableLive">
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                            <placeholder><Label text="Nessun elemento"/></placeholder>
+                        </TableView>
+                    </content>
+                </Tab>
+
+                <Tab fx:id="tabVodTab" text="VOD / OnDemand">
+                    <content>
+                        <TableView fx:id="tableVod">
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                            <placeholder><Label text="Nessun elemento"/></placeholder>
+                        </TableView>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+
+    <!-- BOTTOM: stato -->
+    <bottom>
+        <HBox spacing="10">
+            <children>
+                <Label fx:id="statusLabel" text="Pronto. Seleziona canali e clicca 'Scarica selezionato' per aggiungerli al tab Downloads."/>
+            </children>
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+        </HBox>
+    </bottom>
+
+</BorderPane>
