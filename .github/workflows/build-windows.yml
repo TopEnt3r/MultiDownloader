@@ -85,18 +85,44 @@ jobs:
         @'
         @echo off
         cd /d "%~dp0"
+        setlocal enabledelayedexpansion
+
+        REM Find Java
+        set JAVA_EXE=java
+        where java >nul 2>nul
+        if %errorlevel% neq 0 (
+            REM Try common paths
+            if exist "C:\Program Files\BellSoft\LibericaJDK-21\bin\java.exe" (
+                set JAVA_EXE=C:\Program Files\BellSoft\LibericaJDK-21\bin\java.exe
+            ) else if exist "C:\Program Files\Java\jdk-21\bin\java.exe" (
+                set JAVA_EXE=C:\Program Files\Java\jdk-21\bin\java.exe
+            ) else if exist "C:\Program Files\Eclipse Adoptium\jdk-21*\bin\java.exe" (
+                for /d %%d in ("C:\Program Files\Eclipse Adoptium\jdk-21*") do set JAVA_EXE=%%d\bin\java.exe
+            ) else (
+                echo.
+                echo ========================================
+                echo   ERRORE: Java non trovato!
+                echo ========================================
+                echo.
+                echo Opzioni:
+                echo 1. Riavvia il PC e riprova
+                echo 2. Esegui INSTALLA-DIPENDENZE.bat come Admin
+                echo.
+                pause
+                exit /b 1
+            )
+        )
+
         set PATH=%~dp0ffmpeg;%PATH%
         set PYTHONPATH=%~dp0StreamingCommunity
-        setlocal enabledelayedexpansion
+
+        REM Build classpath
         set CP=
         for %%f in ("%~dp0lib\*.jar") do set CP=!CP!%%f;
-        java -cp "!CP!" com.topent3r.multi.MainApp
-        if %errorlevel% neq 0 (
-            echo.
-            echo Errore: Java non trovato.
-            echo Esegui INSTALLA-DIPENDENZE.bat come Amministratore
-            pause
-        )
+
+        REM Run
+        "!JAVA_EXE!" -cp "!CP!" com.topent3r.multi.MainApp
+        if %errorlevel% neq 0 pause
         '@ | Out-File -FilePath "MultiDownloader/MultiDownloader.bat" -Encoding ASCII
 
     - name: Create README
