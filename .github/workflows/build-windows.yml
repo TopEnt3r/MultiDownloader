@@ -1,0 +1,104 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'liberica'
+        
+    - name: Build JAR with Maven
+      working-directory: Downloader/MultiSiteDownloaderFX
+      run: |
+        mvn clean package -DskipTests
+        mvn dependency:copy-dependencies -DoutputDirectory=target/libs
+        
+    - name: Prepare MultiDownloader bundle
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path "MultiDownloader/lib"
+        New-Item -ItemType Directory -Force -Path "MultiDownloader/scripts"
+        New-Item -ItemType Directory -Force -Path "MultiDownloader/StreamingCommunity"
+        
+        Copy-Item "Downloader/MultiSiteDownloaderFX/target/MultiSiteDownloaderFX-0.1.0-SNAPSHOT.jar" "MultiDownloader/lib/"
+        Copy-Item "Downloader/MultiSiteDownloaderFX/target/libs/*.jar" "MultiDownloader/lib/"
+        Remove-Item "MultiDownloader/lib/*-mac*.jar" -ErrorAction SilentlyContinue
+        Copy-Item "tmp/*.py" "MultiDownloader/scripts/" -ErrorAction SilentlyContinue
+        Copy-Item -Recurse "Downloader/StreamingCommunity/StreamingCommunity-main/*" "MultiDownloader/StreamingCommunity/"
+
+    - name: Create launcher script
+      shell: cmd
+      run: |
+        echo @echo off > MultiDownloader\MultiDownloader.bat
+        echo cd /d "%%~dp0" >> MultiDownloader\MultiDownloader.bat
+        echo set PATH=%%~dp0ffmpeg;%%PATH%% >> MultiDownloader\MultiDownloader.bat
+        echo set PYTHONPATH=%%~dp0StreamingCommunity >> MultiDownloader\MultiDownloader.bat
+        echo setlocal enabledelayedexpansion >> MultiDownloader\MultiDownloader.bat
+        echo set CP= >> MultiDownloader\MultiDownloader.bat
+        echo for %%%%f in ("%%~dp0lib\*.jar") do set CP=!CP!%%%%f; >> MultiDownloader\MultiDownloader.bat
+        echo java -cp "%%CP%%" com.topent3r.multi.MainApp >> MultiDownloader\MultiDownloader.bat
+        echo if %%errorlevel%% neq 0 pause >> MultiDownloader\MultiDownloader.bat
+
+    - name: Create README
+      shell: pwsh
+      run: |
+        "MULTIDOWNLOADER v1.0`nPowered by @QuantixDev`n`nPer avviare: doppio click su MultiDownloader.bat" | Out-File -FilePath "MultiDownloader/LEGGIMI.txt" -Encoding UTF8
+
+    - name: Install Inno Setup
+      run: choco install innosetup -y
+
+    - name: Create Inno Setup script
+      shell: pwsh
+      run: |
+        $iss = @'
+        [Setup]
+        AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+        AppName=MultiDownloader
+        AppVersion=1.0
+        AppPublisher=QuantixDev
+        DefaultDirName={autopf}\MultiDownloader
+        DefaultGroupName=MultiDownloader
+        OutputDir=.
+        OutputBaseFilename=MultiDownloader-Setup
+        Compression=lzma2/ultra64
+        SolidCompression=yes
+        WizardStyle=modern
+        PrivilegesRequired=admin
+        [Languages]
+        Name: "english"; MessagesFile: "compiler:Default.isl"
+        [Tasks]
+        Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
+        [Files]
+        Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+        [Icons]
+        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.bat"
+        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.bat"; Tasks: desktopicon
+        [Run]
+        Filename: "cmd.exe"; Parameters: "/c choco install liberica21jdkfull python311 ffmpeg -y"; StatusMsg: "Installing dependencies..."; Flags: runhidden waituntilterminated
+        Filename: "cmd.exe"; Parameters: "/c pip install requests beautifulsoup4 httpx tqdm rich m3u8"; StatusMsg: "Installing Python libs..."; Flags: runhidden waituntilterminated
+        Filename: "{app}\MultiDownloader.bat"; Description: "Launch MultiDownloader"; Flags: nowait postinstall skipifsilent
+        '@
+        $iss | Out-File -FilePath "setup.iss" -Encoding ASCII
+
+    - name: Build installer
+      shell: pwsh
+      run: |
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
+
+    - name: Upload installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: MultiDownloader-Setup
+        path: MultiDownloader-Setup.exe
