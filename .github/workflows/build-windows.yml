@@ -52,29 +52,49 @@ jobs:
         echo Installazione dipendenze in corso...
         echo.
 
+        REM Disable Windows Store Python aliases
+        echo Disabilitazione alias Python Microsoft Store...
+        reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\App Paths\python.exe" /ve /d "" /f >nul 2>nul
+        reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\App Paths\python3.exe" /ve /d "" /f >nul 2>nul
+
         REM Check if Chocolatey exists
         where choco >nul 2>nul
         if %errorlevel% neq 0 (
             echo Installazione Chocolatey...
             powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+            call refreshenv
         )
 
-        echo Installazione Java...
+        echo Installazione Java 21...
         choco install liberica21jdkfull -y --force
+        call refreshenv
 
-        echo Installazione Python...
+        echo Installazione Python 3.11...
         choco install python311 -y --force
+        call refreshenv
 
         echo Installazione ffmpeg...
         choco install ffmpeg -y --force
+        call refreshenv
+
+        REM Add Python to current session PATH
+        for /f "tokens=*" %%i in ('where python 2^>nul') do set PYTHON_PATH=%%~dpi
+        if defined PYTHON_PATH set PATH=%PYTHON_PATH%;%PATH%
+
+        REM Try multiple Python paths
+        set PYTHON_EXE=python
+        if exist "C:\Python311\python.exe" set PYTHON_EXE=C:\Python311\python.exe
+        if exist "C:\Program Files\Python311\python.exe" set PYTHON_EXE=C:\Program Files\Python311\python.exe
+        if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" set PYTHON_EXE=%LOCALAPPDATA%\Programs\Python\Python311\python.exe
 
         echo Installazione librerie Python...
-        pip install requests beautifulsoup4 httpx tqdm rich m3u8
+        "%PYTHON_EXE%" -m pip install --upgrade pip
+        "%PYTHON_EXE%" -m pip install requests beautifulsoup4 httpx tqdm rich m3u8
 
         echo.
         echo ========================================
         echo   Installazione completata!
-        echo   Riavvia il PC e poi avvia MultiDownloader.bat
+        echo   RIAVVIA IL PC e poi avvia MultiDownloader
         echo ========================================
         pause
         '@ | Out-File -FilePath "MultiDownloader/INSTALLA-DIPENDENZE.bat" -Encoding ASCII
