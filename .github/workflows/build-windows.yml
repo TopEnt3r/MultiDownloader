@@ -122,8 +122,15 @@ jobs:
 
         REM Run with javaw (no console window)
         set JAVAW_EXE=!JAVA_EXE:java.exe=javaw.exe!
-        start "" "!JAVAW_EXE!" -cp "!CP!" com.topent3r.multi.MainApp
+        "!JAVAW_EXE!" -cp "!CP!" com.topent3r.multi.MainApp
         '@ | Out-File -FilePath "MultiDownloader/MultiDownloader.bat" -Encoding ASCII
+        
+        # Create VBS launcher to hide console completely
+        @'
+        Set WshShell = CreateObject("WScript.Shell")
+        WshShell.Run chr(34) & CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName) & "\MultiDownloader.bat" & chr(34), 0
+        Set WshShell = Nothing
+        '@ | Out-File -FilePath "MultiDownloader/MultiDownloader.vbs" -Encoding ASCII
 
     - name: Create README
       shell: pwsh  
@@ -183,9 +190,9 @@ jobs:
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
         
         [Icons]
-        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.bat"
+        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
         Name: "{group}\Installa Dipendenze"; Filename: "{app}\INSTALLA-DIPENDENZE.bat"
-        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.bat"; Tasks: desktopicon
+        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13; Tasks: desktopicon
         
         [Run]
         Filename: "{app}\INSTALLA-DIPENDENZE.bat"; Description: "Installa dipendenze (Java, Python, ffmpeg)"; Flags: postinstall runascurrentuser waituntilterminated
