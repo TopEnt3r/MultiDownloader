@@ -25,7 +25,7 @@ jobs:
         mvn clean package -DskipTests
         mvn dependency:copy-dependencies -DoutputDirectory=target/libs
         
-    - name: Prepare MultiDownloader bundle
+    - name: Prepare bundle
       shell: pwsh
       run: |
         New-Item -ItemType Directory -Force -Path "MultiDownloader/lib"
@@ -34,27 +34,97 @@ jobs:
         
         Copy-Item "Downloader/MultiSiteDownloaderFX/target/MultiSiteDownloaderFX-0.1.0-SNAPSHOT.jar" "MultiDownloader/lib/"
         Copy-Item "Downloader/MultiSiteDownloaderFX/target/libs/*.jar" "MultiDownloader/lib/"
-        Remove-Item "MultiDownloader/lib/*-mac*.jar" -ErrorAction SilentlyContinue
+        Get-ChildItem "MultiDownloader/lib/*-mac*.jar" | Remove-Item -ErrorAction SilentlyContinue
+        Get-ChildItem "MultiDownloader/lib/*-linux*.jar" | Remove-Item -ErrorAction SilentlyContinue
         Copy-Item "tmp/*.py" "MultiDownloader/scripts/" -ErrorAction SilentlyContinue
         Copy-Item -Recurse "Downloader/StreamingCommunity/StreamingCommunity-main/*" "MultiDownloader/StreamingCommunity/"
 
-    - name: Create launcher script
-      shell: cmd
-      run: |
-        echo @echo off > MultiDownloader\MultiDownloader.bat
-        echo cd /d "%%~dp0" >> MultiDownloader\MultiDownloader.bat
-        echo set PATH=%%~dp0ffmpeg;%%PATH%% >> MultiDownloader\MultiDownloader.bat
-        echo set PYTHONPATH=%%~dp0StreamingCommunity >> MultiDownloader\MultiDownloader.bat
-        echo setlocal enabledelayedexpansion >> MultiDownloader\MultiDownloader.bat
-        echo set CP= >> MultiDownloader\MultiDownloader.bat
-        echo for %%%%f in ("%%~dp0lib\*.jar") do set CP=!CP!%%%%f; >> MultiDownloader\MultiDownloader.bat
-        echo java -cp "%%CP%%" com.topent3r.multi.MainApp >> MultiDownloader\MultiDownloader.bat
-        echo if %%errorlevel%% neq 0 pause >> MultiDownloader\MultiDownloader.bat
-
-    - name: Create README
+    - name: Create install script
       shell: pwsh
       run: |
-        "MULTIDOWNLOADER v1.0`nPowered by @QuantixDev`n`nPer avviare: doppio click su MultiDownloader.bat" | Out-File -FilePath "MultiDownloader/LEGGIMI.txt" -Encoding UTF8
+        @'
+        @echo off
+        echo ========================================
+        echo   MultiDownloader - Installazione
+        echo   Powered by @QuantixDev
+        echo ========================================
+        echo.
+        echo Installazione dipendenze in corso...
+        echo.
+
+        REM Check if Chocolatey exists
+        where choco >nul 2>nul
+        if %errorlevel% neq 0 (
+            echo Installazione Chocolatey...
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+        )
+
+        echo Installazione Java...
+        choco install liberica21jdkfull -y --force
+
+        echo Installazione Python...
+        choco install python311 -y --force
+
+        echo Installazione ffmpeg...
+        choco install ffmpeg -y --force
+
+        echo Installazione librerie Python...
+        pip install requests beautifulsoup4 httpx tqdm rich m3u8
+
+        echo.
+        echo ========================================
+        echo   Installazione completata!
+        echo   Riavvia il PC e poi avvia MultiDownloader.bat
+        echo ========================================
+        pause
+        '@ | Out-File -FilePath "MultiDownloader/INSTALLA-DIPENDENZE.bat" -Encoding ASCII
+
+    - name: Create launcher
+      shell: pwsh
+      run: |
+        @'
+        @echo off
+        cd /d "%~dp0"
+        set PATH=%~dp0ffmpeg;%PATH%
+        set PYTHONPATH=%~dp0StreamingCommunity
+        setlocal enabledelayedexpansion
+        set CP=
+        for %%f in ("%~dp0lib\*.jar") do set CP=!CP!%%f;
+        java -cp "!CP!" com.topent3r.multi.MainApp
+        if %errorlevel% neq 0 (
+            echo.
+            echo Errore: Java non trovato.
+            echo Esegui INSTALLA-DIPENDENZE.bat come Amministratore
+            pause
+        )
+        '@ | Out-File -FilePath "MultiDownloader/MultiDownloader.bat" -Encoding ASCII
+
+    - name: Create README
+      shell: pwsh  
+      run: |
+        @'
+        ================================================
+        MULTIDOWNLOADER v1.0
+        Powered by @QuantixDev
+        ================================================
+
+        PRIMO AVVIO:
+        1. Clicca destro su INSTALLA-DIPENDENZE.bat
+        2. Seleziona "Esegui come amministratore"
+        3. Attendi il completamento
+        4. Riavvia il PC
+        5. Doppio click su MultiDownloader.bat
+
+        REQUISITI (installati automaticamente):
+        - Java 21 (Liberica JDK Full)
+        - Python 3.11
+        - ffmpeg
+
+        PROBLEMI?
+        - Assicurati di eseguire come Amministratore
+        - Riavvia il PC dopo l'installazione
+        ================================================
+        '@ | Out-File -FilePath "MultiDownloader/LEGGIMI.txt" -Encoding UTF8
 
     - name: Install Inno Setup
       run: choco install innosetup -y
@@ -62,7 +132,7 @@ jobs:
     - name: Create Inno Setup script
       shell: pwsh
       run: |
-        $iss = @'
+        @'
         [Setup]
         AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
         AppName=MultiDownloader
@@ -76,26 +146,29 @@ jobs:
         SolidCompression=yes
         WizardStyle=modern
         PrivilegesRequired=admin
+        
         [Languages]
         Name: "english"; MessagesFile: "compiler:Default.isl"
+        
         [Tasks]
         Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
+        
         [Files]
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+        
         [Icons]
         Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.bat"
+        Name: "{group}\Installa Dipendenze"; Filename: "{app}\INSTALLA-DIPENDENZE.bat"
         Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.bat"; Tasks: desktopicon
+        
         [Run]
-        Filename: "cmd.exe"; Parameters: "/c choco install liberica21jdkfull python311 ffmpeg -y"; StatusMsg: "Installing dependencies..."; Flags: runhidden waituntilterminated
-        Filename: "cmd.exe"; Parameters: "/c pip install requests beautifulsoup4 httpx tqdm rich m3u8"; StatusMsg: "Installing Python libs..."; Flags: runhidden waituntilterminated
-        Filename: "{app}\MultiDownloader.bat"; Description: "Launch MultiDownloader"; Flags: nowait postinstall skipifsilent
-        '@
-        $iss | Out-File -FilePath "setup.iss" -Encoding ASCII
+        Filename: "{app}\INSTALLA-DIPENDENZE.bat"; Description: "Installa dipendenze (Java, Python, ffmpeg)"; Flags: postinstall runascurrentuser waituntilterminated
+        '@ | Out-File -FilePath "setup.iss" -Encoding ASCII
 
     - name: Build installer
-      shell: pwsh
+      shell: cmd
       run: |
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
 
     - name: Upload installer
       uses: actions/upload-artifact@v4
