@@ -38,6 +38,10 @@ jobs:
         Get-ChildItem "MultiDownloader/lib/*-linux*.jar" | Remove-Item -ErrorAction SilentlyContinue
         Copy-Item "tmp/*.py" "MultiDownloader/scripts/" -ErrorAction SilentlyContinue
         Copy-Item -Recurse "Downloader/StreamingCommunity/StreamingCommunity-main/*" "MultiDownloader/StreamingCommunity/"
+        
+        # Download config.json for StreamingCommunity
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json" -OutFile "MultiDownloader/config.json"
+        Copy-Item "MultiDownloader/config.json" "MultiDownloader/StreamingCommunity/config.json"
 
     - name: Create install script
       shell: pwsh
