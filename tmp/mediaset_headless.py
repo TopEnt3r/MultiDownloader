@@ -30,7 +30,17 @@ sys.stderr = io.StringIO()
 sys.stdout = io.StringIO()
 
 # Add StreamingCommunity to path (same as raiplay_headless.py)
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'))
+# Add StreamingCommunity to path - try multiple locations
+script_dir = os.path.dirname(os.path.abspath(__file__))
+possible_paths = [
+    os.path.join(script_dir, '..', 'StreamingCommunity'),
+    os.path.join(script_dir, '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'),
+    os.path.join(os.getcwd(), 'StreamingCommunity'),
+]
+for p in possible_paths:
+    if os.path.exists(p):
+        sys.path.insert(0, p)
+        break
 
 # Import after path setup
 from StreamingCommunity.Api.Site.mediasetinfinity.site import title_search, media_search_manager

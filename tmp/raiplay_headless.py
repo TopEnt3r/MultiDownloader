@@ -28,8 +28,17 @@ old_stdout = sys.stdout
 sys.stderr = io.StringIO()
 sys.stdout = io.StringIO()
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'))
+# Add StreamingCommunity to path - try multiple locations
+script_dir = os.path.dirname(os.path.abspath(__file__))
+possible_paths = [
+    os.path.join(script_dir, '..', 'StreamingCommunity'),  # Installed app
+    os.path.join(script_dir, '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'),  # Dev
+    os.path.join(os.getcwd(), 'StreamingCommunity'),  # CWD
+]
+for p in possible_paths:
+    if os.path.exists(p):
+        sys.path.insert(0, p)
+        break
 
 from StreamingCommunity.Api.Site.raiplay import (
     title_search,
