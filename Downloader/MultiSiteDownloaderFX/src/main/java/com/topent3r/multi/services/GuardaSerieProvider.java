@@ -15,7 +15,7 @@ import java.util.List;
 
 public class GuardaSerieProvider implements ContentProvider {
     
-    private static final String PYTHON_SCRIPT = "tmp/guardaserie_headless.py";
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("guardaserie_headless.py");
     private final Gson gson = new Gson();
     
     @Override

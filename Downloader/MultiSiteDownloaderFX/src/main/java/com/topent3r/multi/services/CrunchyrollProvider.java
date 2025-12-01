@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class CrunchyrollProvider implements ContentProvider {
     
-    private static final String PYTHON_SCRIPT = "tmp/crunchyroll_headless.py";
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("crunchyroll_headless.py");
     private final Gson gson = new Gson();
     
     // Cache for episodes by series ID

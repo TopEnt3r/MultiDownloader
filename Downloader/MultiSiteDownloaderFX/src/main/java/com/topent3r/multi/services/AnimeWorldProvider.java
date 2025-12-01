@@ -15,7 +15,7 @@ import java.util.List;
 
 public class AnimeWorldProvider implements ContentProvider {
     
-    private static final String PYTHON_SCRIPT = "tmp/animeworld_headless.py";
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("animeworld_headless.py");
     private final Gson gson = new Gson();
     
     @Override

@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class MediasetInfinityProvider implements ContentProvider {
     
-    private static final String PYTHON_SCRIPT = "tmp/mediaset_headless.py";
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("mediaset_headless.py");
     private final Gson gson = new Gson();
     
     // Cache for episodes by URL

@@ -16,8 +16,8 @@ import java.util.*;
  */
 public class RaiPlayProvider implements ContentProvider {
 
-    private static final String PYTHON_SCRIPT = "/Users/andreacassan/AndroidStudioProjects/evolutix-panel 2/tmp/raiplay_headless.py";
-    private static final String PYTHON_CMD = "python3";
+    private static final String PYTHON_CMD = PythonHelper.getPythonCommand();
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("raiplay_headless.py");
     private final Gson gson = new Gson();
     private final Map<String, String> pathIdCache = new HashMap<>();  // media_id -> path_id
 

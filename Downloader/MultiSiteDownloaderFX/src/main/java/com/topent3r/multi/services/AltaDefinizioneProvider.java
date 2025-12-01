@@ -15,7 +15,7 @@ import java.util.List;
 
 public class AltaDefinizioneProvider implements ContentProvider {
     
-    private static final String PYTHON_SCRIPT = "tmp/altadefinizione_headless.py";
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("altadefinizione_headless.py");
     private final Gson gson = new Gson();
     
     @Override

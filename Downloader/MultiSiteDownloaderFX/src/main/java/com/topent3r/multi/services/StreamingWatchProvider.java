@@ -15,7 +15,7 @@ import java.util.List;
 
 public class StreamingWatchProvider implements ContentProvider {
     
-    private static final String PYTHON_SCRIPT = "tmp/streamingwatch_headless.py";
+    private static final String PYTHON_SCRIPT = PythonHelper.getScriptPath("streamingwatch_headless.py");
     private final Gson gson = new Gson();
     
     @Override
