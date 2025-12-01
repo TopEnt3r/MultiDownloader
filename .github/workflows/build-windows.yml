@@ -120,9 +120,9 @@ jobs:
         set CP=
         for %%f in ("%~dp0lib\*.jar") do set CP=!CP!%%f;
 
-        REM Run
-        "!JAVA_EXE!" -cp "!CP!" com.topent3r.multi.MainApp
-        if %errorlevel% neq 0 pause
+        REM Run with javaw (no console window)
+        set JAVAW_EXE=!JAVA_EXE:java.exe=javaw.exe!
+        start "" "!JAVAW_EXE!" -cp "!CP!" com.topent3r.multi.MainApp
         '@ | Out-File -FilePath "MultiDownloader/MultiDownloader.bat" -Encoding ASCII
 
     - name: Create README
