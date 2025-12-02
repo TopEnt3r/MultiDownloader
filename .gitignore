@@ -76,8 +76,10 @@ WindowsBuild/
 *.dylib
 **/modules
 **/jdk*/
-**/FFmpeg/
-**/ffmpeg/
+# Ignore ffmpeg binaries but not StreamingCommunity FFmpeg module
+**/FFmpeg/*.exe
+**/ffmpeg/*.exe
+!**/StreamingCommunity/Lib/FFmpeg/
 **/Video/
 **/runtime/
 **/*SELFCONTAINED*/
