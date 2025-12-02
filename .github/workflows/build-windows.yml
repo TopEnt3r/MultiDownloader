@@ -215,8 +215,37 @@ jobs:
         Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
 
         [Run]
-        Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione dipendenze..."; Flags: runhidden waituntilterminated
         Filename: "{app}\MultiDownloader.vbs"; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent unchecked
+
+        [Code]
+        var StatusText: TNewStaticText;
+        
+        procedure InitializeWizard();
+        begin
+          StatusText := TNewStaticText.Create(WizardForm);
+          StatusText.Parent := WizardForm.InstallingPage;
+          StatusText.Top := WizardForm.ProgressGauge.Top + WizardForm.ProgressGauge.Height + 8;
+          StatusText.Left := WizardForm.ProgressGauge.Left;
+          StatusText.Width := WizardForm.ProgressGauge.Width;
+          StatusText.Caption := '';
+        end;
+
+        procedure CurStepChanged(CurStep: TSetupStep);
+        var
+          ResultCode: Integer;
+        begin
+          if CurStep = ssPostInstall then
+          begin
+            WizardForm.ProgressGauge.Position := 0;
+            WizardForm.ProgressGauge.Style := npbstMarquee;
+            StatusText.Caption := 'Installazione dipendenze (Java, Python, FFmpeg)...';
+            WizardForm.StatusLabel.Caption := 'Attendere, operazione in corso...';
+            Exec('powershell.exe', '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}') + '\INSTALLA-DIPENDENZE.ps1"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+            WizardForm.ProgressGauge.Style := npbstNormal;
+            WizardForm.ProgressGauge.Position := WizardForm.ProgressGauge.Max;
+            StatusText.Caption := 'Completato!';
+          end;
+        end;
         "@
         $iss | Out-File -FilePath "setup.iss" -Encoding ASCII
 
