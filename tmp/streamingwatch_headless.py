@@ -20,11 +20,17 @@ logging.getLogger().setLevel(logging.CRITICAL)
 import warnings
 warnings.filterwarnings("ignore")
 
-# Set up the project root and change working directory
-PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main')
-PROJECT_ROOT = os.path.abspath(PROJECT_ROOT)
-os.chdir(PROJECT_ROOT)
-sys.path.insert(0, PROJECT_ROOT)
+# Add StreamingCommunity to path - try multiple locations
+script_dir = os.path.dirname(os.path.abspath(__file__))
+possible_paths = [
+    os.path.join(script_dir, '..', 'StreamingCommunity'),  # Installed app
+    os.path.join(script_dir, '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'),  # Dev
+    os.path.join(os.getcwd(), 'StreamingCommunity'),  # CWD
+]
+for p in possible_paths:
+    if os.path.exists(p):
+        sys.path.insert(0, p)
+        break
 
 # Stub optional dependencies BEFORE any imports
 import types
