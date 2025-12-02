@@ -24,13 +24,15 @@ warnings.filterwarnings("ignore")
 # Add StreamingCommunity to path - try multiple locations
 script_dir = os.path.dirname(os.path.abspath(__file__))
 possible_paths = [
-    os.path.join(script_dir, '..', 'StreamingCommunity'),  # Installed app
-    os.path.join(script_dir, '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'),  # Dev
-    os.path.join(os.getcwd(), 'StreamingCommunity'),  # CWD
+    os.path.join(script_dir, '..', 'StreamingCommunity'),
+    os.path.join(script_dir, '..', 'StreamingCommunity', 'StreamingCommunity'),
+    os.path.join(script_dir, '..', 'Downloader', 'StreamingCommunity', 'StreamingCommunity-main'),
+    os.path.join(os.getcwd(), 'StreamingCommunity'),
 ]
 for p in possible_paths:
     if os.path.exists(p):
         sys.path.insert(0, p)
+        os.chdir(p)
         break
 
 # Stub optional dependencies BEFORE any imports
