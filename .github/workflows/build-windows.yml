@@ -211,11 +211,11 @@ jobs:
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
         [Icons]
-        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{app}\icon.ico"
-        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
+        Name: "{group}\MultiDownloader"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\MultiDownloader.vbs"""; IconFilename: "{app}\icon.ico"
+        Name: "{autodesktop}\MultiDownloader"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\MultiDownloader.vbs"""; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
 
         [Run]
-        Filename: "{app}\MultiDownloader.vbs"; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent unchecked
+        Filename: "{sys}\wscript.exe"; Parameters: """{app}\MultiDownloader.vbs"""; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent unchecked
 
         [Code]
         var StatusText: TNewStaticText;

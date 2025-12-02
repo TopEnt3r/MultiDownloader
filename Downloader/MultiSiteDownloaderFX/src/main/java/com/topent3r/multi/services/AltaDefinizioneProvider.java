@@ -120,7 +120,7 @@ public class AltaDefinizioneProvider implements ContentProvider {
         Path scriptPath = projectRoot.resolve(PYTHON_SCRIPT);
         
         List<String> cmd = new ArrayList<>();
-        cmd.add("python3");
+        cmd.add(PythonHelper.getPythonCommand());
         cmd.add(scriptPath.toString());
         for (String arg : args) cmd.add(arg);
         

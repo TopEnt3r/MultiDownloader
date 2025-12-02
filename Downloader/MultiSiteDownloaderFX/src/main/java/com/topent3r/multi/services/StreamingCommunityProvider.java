@@ -878,7 +878,7 @@ public class StreamingCommunityProvider implements ContentProvider {
             java.nio.file.Path p3 = java.nio.file.Paths.get(repo, ".venv", "Scripts", "python.exe");
             if (java.nio.file.Files.exists(p3)) return p3.toString();
         } catch (Exception ignore) {}
-        return "python3";
+        return PythonHelper.getPythonCommand();
     }
 
     private String pythonResolvePlaylistBySE(String base, String numericId, String slug, Integer season, Integer episode) {
