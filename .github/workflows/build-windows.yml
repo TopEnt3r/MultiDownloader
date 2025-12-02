@@ -170,8 +170,16 @@ jobs:
         ================================================
         '@ | Out-File -FilePath "MultiDownloader/LEGGIMI.txt" -Encoding UTF8
 
-    - name: Install Inno Setup
-      run: choco install innosetup -y
+    - name: Install Inno Setup and ImageMagick
+      run: |
+        choco install innosetup -y
+        choco install imagemagick -y
+
+    - name: Create app icon
+      shell: pwsh
+      run: |
+        magick assets/logo.png -resize 256x256 MultiDownloader/icon.ico
+        Copy-Item assets/logo.png MultiDownloader/logo.png
 
     - name: Create Inno Setup script
       shell: pwsh
@@ -186,6 +194,8 @@ jobs:
         DefaultGroupName=MultiDownloader
         OutputDir=.
         OutputBaseFilename=MultiDownloader-Setup
+        SetupIconFile=MultiDownloader\icon.ico
+        UninstallDisplayIcon={app}\icon.ico
         Compression=lzma2/ultra64
         SolidCompression=yes
         WizardStyle=modern
@@ -201,8 +211,8 @@ jobs:
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
         [Icons]
-        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"
-        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; Tasks: desktopicon
+        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{app}\icon.ico"
+        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{app}\icon.ico"; Tasks: desktopicon
 
         [Run]
         Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione dipendenze..."; Flags: runhidden waituntilterminated
