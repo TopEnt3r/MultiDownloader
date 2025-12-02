@@ -43,77 +43,111 @@ jobs:
         Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json" -OutFile "MultiDownloader/config.json"
         Copy-Item "MultiDownloader/config.json" "MultiDownloader/StreamingCommunity/config.json"
 
-    - name: Create install script
+    - name: Create install script with GUI
       shell: pwsh
       run: |
         @'
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
+
+        $form = New-Object System.Windows.Forms.Form
+        $form.Text = "MultiDownloader - Installazione"
+        $form.Size = New-Object System.Drawing.Size(500, 200)
+        $form.StartPosition = "CenterScreen"
+        $form.FormBorderStyle = "FixedDialog"
+        $form.MaximizeBox = $false
+        $form.MinimizeBox = $false
+        $form.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
+
+        $titleLabel = New-Object System.Windows.Forms.Label
+        $titleLabel.Text = "MultiDownloader - Powered by @QuantixDev"
+        $titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
+        $titleLabel.ForeColor = [System.Drawing.Color]::FromArgb(138, 43, 226)
+        $titleLabel.AutoSize = $true
+        $titleLabel.Location = New-Object System.Drawing.Point(70, 20)
+        $form.Controls.Add($titleLabel)
+
+        $statusLabel = New-Object System.Windows.Forms.Label
+        $statusLabel.Text = "Preparazione..."
+        $statusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+        $statusLabel.ForeColor = [System.Drawing.Color]::White
+        $statusLabel.AutoSize = $true
+        $statusLabel.Location = New-Object System.Drawing.Point(20, 70)
+        $form.Controls.Add($statusLabel)
+
+        $progressBar = New-Object System.Windows.Forms.ProgressBar
+        $progressBar.Location = New-Object System.Drawing.Point(20, 100)
+        $progressBar.Size = New-Object System.Drawing.Size(440, 30)
+        $progressBar.Style = "Continuous"
+        $form.Controls.Add($progressBar)
+
+        $form.Show()
+        [System.Windows.Forms.Application]::DoEvents()
+
+        function Update-Progress($text, $percent) {
+            $statusLabel.Text = $text
+            $progressBar.Value = $percent
+            [System.Windows.Forms.Application]::DoEvents()
+        }
+
+        $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+        try {
+            Update-Progress "Impostazione permessi..." 5
+            icacls $scriptDir /grant Users:F /T 2>$null
+
+            Update-Progress "Verifica Chocolatey..." 10
+            $chocoPath = Get-Command choco -ErrorAction SilentlyContinue
+            if (-not $chocoPath) {
+                Update-Progress "Installazione Chocolatey..." 15
+                Set-ExecutionPolicy Bypass -Scope Process -Force
+                [System.Net.ServicePointManager]::SecurityProtocol = 3072
+                iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            }
+
+            Update-Progress "Installazione Java 21..." 25
+            choco install liberica21jdkfull -y --force 2>$null
+
+            Update-Progress "Installazione Python 3.11..." 40
+            choco install python311 -y --force 2>$null
+
+            Update-Progress "Installazione FFmpeg..." 55
+            choco install ffmpeg -y --force 2>$null
+
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+            Update-Progress "Ricerca Python..." 60
+            $pythonPaths = @("C:\Python311\python.exe", "C:\Program Files\Python311\python.exe", "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe")
+            $pythonExe = "python"
+            foreach ($p in $pythonPaths) { if (Test-Path $p) { $pythonExe = $p; break } }
+
+            Update-Progress "Installazione librerie Python..." 70
+            & $pythonExe -m pip install --upgrade pip 2>$null
+            & $pythonExe -m pip install httpx bs4 rich tqdm m3u8 psutil unidecode curl_cffi jsbeautifier pathvalidate pycryptodomex ua-generator qbittorrent-api pyTelegramBotAPI pywidevine python-dotenv requests lxml cssselect certifi fake-useragent 2>$null
+
+            Update-Progress "Download configurazione..." 90
+            $configPath = Join-Path $scriptDir "config.json"
+            $scConfigPath = Join-Path $scriptDir "StreamingCommunity\config.json"
+            if (-not (Test-Path $configPath)) {
+                Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json" -OutFile $configPath
+            }
+            if (-not (Test-Path $scConfigPath)) { Copy-Item $configPath $scConfigPath -Force }
+
+            Update-Progress "Installazione completata!" 100
+
+            $form.Close()
+            [System.Windows.Forms.MessageBox]::Show("Installazione completata!`n`nRiavvia il PC e poi avvia MultiDownloader.", "MultiDownloader", "OK", "Information")
+        }
+        catch {
+            [System.Windows.Forms.MessageBox]::Show("Errore: $_", "MultiDownloader", "OK", "Error")
+        }
+        '@ | Out-File -FilePath "MultiDownloader/INSTALLA-DIPENDENZE.ps1" -Encoding UTF8
+
+        # Create a launcher batch file for the PowerShell script
+        @'
         @echo off
-        echo ========================================
-        echo   MultiDownloader - Installazione
-        echo   Powered by @QuantixDev
-        echo ========================================
-        echo.
-        echo Installazione dipendenze in corso...
-        echo.
-
-        REM Disable Windows Store Python aliases
-        echo Disabilitazione alias Python Microsoft Store...
-        reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\App Paths\python.exe" /ve /d "" /f >nul 2>nul
-        reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\App Paths\python3.exe" /ve /d "" /f >nul 2>nul
-
-        REM Check if Chocolatey exists
-        where choco >nul 2>nul
-        if %errorlevel% neq 0 (
-            echo Installazione Chocolatey...
-            powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-            call refreshenv
-        )
-
-        echo Installazione Java 21...
-        choco install liberica21jdkfull -y --force
-        call refreshenv
-
-        echo Installazione Python 3.11...
-        choco install python311 -y --force
-        call refreshenv
-
-        echo Installazione ffmpeg...
-        choco install ffmpeg -y --force
-        call refreshenv
-
-        REM Add Python to current session PATH
-        for /f "tokens=*" %%i in ('where python 2^>nul') do set PYTHON_PATH=%%~dpi
-        if defined PYTHON_PATH set PATH=%PYTHON_PATH%;%PATH%
-
-        REM Try multiple Python paths
-        set PYTHON_EXE=python
-        if exist "C:\Python311\python.exe" set PYTHON_EXE=C:\Python311\python.exe
-        if exist "C:\Program Files\Python311\python.exe" set PYTHON_EXE=C:\Program Files\Python311\python.exe
-        if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" set PYTHON_EXE=%LOCALAPPDATA%\Programs\Python\Python311\python.exe
-
-        echo Installazione librerie Python...
-        "%PYTHON_EXE%" -m pip install --upgrade pip
-        "%PYTHON_EXE%" -m pip install httpx bs4 rich tqdm m3u8 psutil unidecode curl_cffi jsbeautifier pathvalidate pycryptodomex ua-generator qbittorrent-api pyTelegramBotAPI pywidevine python-dotenv requests lxml cssselect certifi fake-useragent
-
-        REM Download config.json if not exists
-        if not exist "%~dp0config.json" (
-            echo Download config.json...
-            curl -o "%~dp0config.json" https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json 2>nul
-            if not exist "%~dp0config.json" (
-                powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json' -OutFile '%~dp0config.json'"
-            )
-        )
-        if not exist "%~dp0StreamingCommunity\config.json" copy "%~dp0config.json" "%~dp0StreamingCommunity\config.json"
-
-        REM Set write permissions
-        icacls "%~dp0" /grant Users:F /T >nul 2>nul
-
-        echo.
-        echo ========================================
-        echo   Installazione completata!
-        echo   RIAVVIA IL PC e poi avvia MultiDownloader
-        echo ========================================
-        pause
+        powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0INSTALLA-DIPENDENZE.ps1"
         '@ | Out-File -FilePath "MultiDownloader/INSTALLA-DIPENDENZE.bat" -Encoding ASCII
 
     - name: Create launcher
