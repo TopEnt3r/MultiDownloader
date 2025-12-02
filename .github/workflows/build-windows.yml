@@ -176,7 +176,7 @@ jobs:
     - name: Create Inno Setup script
       shell: pwsh
       run: |
-        @'
+        $iss = @"
         [Setup]
         AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
         AppName=MultiDownloader
@@ -190,40 +190,25 @@ jobs:
         SolidCompression=yes
         WizardStyle=modern
         PrivilegesRequired=admin
-        SetupIconFile=compiler:SetupClassicIcon.ico
-        WizardImageFile=compiler:WizModernImage-IS.bmp
-        WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
-        
+
         [Languages]
         Name: "english"; MessagesFile: "compiler:Default.isl"
-        
-        [Messages]
-        InstallingLabel=Installazione MultiDownloader e dipendenze...
-        
+
         [Tasks]
-        Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-        Name: "installdeps"; Description: "Installa dipendenze (Java, Python, FFmpeg)"; GroupDescription: "Componenti aggiuntivi:"
-        
+        Name: "desktopicon"; Description: "Crea icona sul Desktop"; Flags: unchecked
+
         [Files]
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-        
+
         [Icons]
-        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
-        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13; Tasks: desktopicon
-        
+        Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"
+        Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; Tasks: desktopicon
+
         [Run]
-        Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione dipendenze..."; Flags: runhidden waituntilterminated shellexec; Tasks: installdeps
-        Filename: "{app}\MultiDownloader.vbs"; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent
-        
-        [Code]
-        procedure CurStepChanged(CurStep: TSetupStep);
-        begin
-          if CurStep = ssPostInstall then
-          begin
-            WizardForm.StatusLabel.Caption := 'Configurazione completata!';
-          end;
-        end;
-        '@ | Out-File -FilePath "setup.iss" -Encoding ASCII
+        Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione dipendenze..."; Flags: runhidden waituntilterminated
+        Filename: "{app}\MultiDownloader.vbs"; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent unchecked
+        "@
+        $iss | Out-File -FilePath "setup.iss" -Encoding ASCII
 
     - name: Build installer
       shell: cmd
