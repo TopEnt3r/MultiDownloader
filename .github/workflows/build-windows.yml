@@ -202,7 +202,7 @@ jobs:
         
         [Tasks]
         Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-        Name: "installdeps"; Description: "Installa dipendenze (Java, Python, FFmpeg)"; GroupDescription: "Componenti aggiuntivi:"; Flags: checkedonce
+        Name: "installdeps"; Description: "Installa dipendenze (Java, Python, FFmpeg)"; GroupDescription: "Componenti aggiuntivi:"
         
         [Files]
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -212,7 +212,7 @@ jobs:
         Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13; Tasks: desktopicon
         
         [Run]
-        Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione Chocolatey..."; Flags: runhidden waituntilterminated; Tasks: installdeps
+        Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione dipendenze..."; Flags: runhidden waituntilterminated shellexec; Tasks: installdeps
         Filename: "{app}\MultiDownloader.vbs"; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent
         
         [Code]
