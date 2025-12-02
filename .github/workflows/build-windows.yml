@@ -43,112 +43,52 @@ jobs:
         Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json" -OutFile "MultiDownloader/config.json"
         Copy-Item "MultiDownloader/config.json" "MultiDownloader/StreamingCommunity/config.json"
 
-    - name: Create install script with GUI
+    - name: Create silent install script
       shell: pwsh
       run: |
         @'
-        Add-Type -AssemblyName System.Windows.Forms
-        Add-Type -AssemblyName System.Drawing
-
-        $form = New-Object System.Windows.Forms.Form
-        $form.Text = "MultiDownloader - Installazione"
-        $form.Size = New-Object System.Drawing.Size(500, 200)
-        $form.StartPosition = "CenterScreen"
-        $form.FormBorderStyle = "FixedDialog"
-        $form.MaximizeBox = $false
-        $form.MinimizeBox = $false
-        $form.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
-
-        $titleLabel = New-Object System.Windows.Forms.Label
-        $titleLabel.Text = "MultiDownloader - Powered by @QuantixDev"
-        $titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 14, [System.Drawing.FontStyle]::Bold)
-        $titleLabel.ForeColor = [System.Drawing.Color]::FromArgb(138, 43, 226)
-        $titleLabel.AutoSize = $true
-        $titleLabel.Location = New-Object System.Drawing.Point(70, 20)
-        $form.Controls.Add($titleLabel)
-
-        $statusLabel = New-Object System.Windows.Forms.Label
-        $statusLabel.Text = "Preparazione..."
-        $statusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-        $statusLabel.ForeColor = [System.Drawing.Color]::White
-        $statusLabel.AutoSize = $true
-        $statusLabel.Location = New-Object System.Drawing.Point(20, 70)
-        $form.Controls.Add($statusLabel)
-
-        $progressBar = New-Object System.Windows.Forms.ProgressBar
-        $progressBar.Location = New-Object System.Drawing.Point(20, 100)
-        $progressBar.Size = New-Object System.Drawing.Size(440, 30)
-        $progressBar.Style = "Continuous"
-        $form.Controls.Add($progressBar)
-
-        $form.Show()
-        [System.Windows.Forms.Application]::DoEvents()
-
-        function Update-Progress($text, $percent) {
-            $statusLabel.Text = $text
-            $progressBar.Value = $percent
-            [System.Windows.Forms.Application]::DoEvents()
-        }
-
+        # Silent installation script - runs hidden during Inno Setup
         $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-        try {
-            Update-Progress "Impostazione permessi..." 5
-            icacls $scriptDir /grant Users:F /T 2>$null
+        # Set permissions
+        icacls $scriptDir /grant Users:F /T 2>$null
 
-            Update-Progress "Verifica Chocolatey..." 10
-            $chocoPath = Get-Command choco -ErrorAction SilentlyContinue
-            if (-not $chocoPath) {
-                Update-Progress "Installazione Chocolatey..." 15
-                Set-ExecutionPolicy Bypass -Scope Process -Force
-                [System.Net.ServicePointManager]::SecurityProtocol = 3072
-                iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-                $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-            }
-
-            Update-Progress "Installazione Java 21..." 25
-            choco install liberica21jdkfull -y --force 2>$null
-
-            Update-Progress "Installazione Python 3.11..." 40
-            choco install python311 -y --force 2>$null
-
-            Update-Progress "Installazione FFmpeg..." 55
-            choco install ffmpeg -y --force 2>$null
-
+        # Install Chocolatey if needed
+        $chocoPath = Get-Command choco -ErrorAction SilentlyContinue
+        if (-not $chocoPath) {
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol = 3072
+            iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
             $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-
-            Update-Progress "Ricerca Python..." 60
-            $pythonPaths = @("C:\Python311\python.exe", "C:\Program Files\Python311\python.exe", "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe")
-            $pythonExe = "python"
-            foreach ($p in $pythonPaths) { if (Test-Path $p) { $pythonExe = $p; break } }
-
-            Update-Progress "Installazione librerie Python..." 70
-            & $pythonExe -m pip install --upgrade pip 2>$null
-            & $pythonExe -m pip install httpx bs4 rich tqdm m3u8 psutil unidecode curl_cffi jsbeautifier pathvalidate pycryptodomex ua-generator qbittorrent-api pyTelegramBotAPI pywidevine python-dotenv requests lxml cssselect certifi fake-useragent 2>$null
-
-            Update-Progress "Download configurazione..." 90
-            $configPath = Join-Path $scriptDir "config.json"
-            $scConfigPath = Join-Path $scriptDir "StreamingCommunity\config.json"
-            if (-not (Test-Path $configPath)) {
-                Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json" -OutFile $configPath
-            }
-            if (-not (Test-Path $scConfigPath)) { Copy-Item $configPath $scConfigPath -Force }
-
-            Update-Progress "Installazione completata!" 100
-
-            $form.Close()
-            [System.Windows.Forms.MessageBox]::Show("Installazione completata!`n`nRiavvia il PC e poi avvia MultiDownloader.", "MultiDownloader", "OK", "Information")
         }
-        catch {
-            [System.Windows.Forms.MessageBox]::Show("Errore: $_", "MultiDownloader", "OK", "Error")
+
+        # Install dependencies via Chocolatey
+        choco install liberica21jdkfull -y --force 2>$null
+        choco install python311 -y --force 2>$null
+        choco install ffmpeg -y --force 2>$null
+
+        # Refresh PATH
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+        # Find Python
+        $pythonPaths = @("C:\Python311\python.exe", "C:\Program Files\Python311\python.exe", "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe")
+        $pythonExe = "python"
+        foreach ($p in $pythonPaths) { if (Test-Path $p) { $pythonExe = $p; break } }
+
+        # Install Python packages
+        & $pythonExe -m pip install --upgrade pip 2>$null
+        & $pythonExe -m pip install httpx bs4 rich tqdm m3u8 psutil unidecode curl_cffi jsbeautifier pathvalidate pycryptodomex ua-generator qbittorrent-api pyTelegramBotAPI pywidevine python-dotenv requests lxml cssselect certifi fake-useragent 2>$null
+
+        # Download config if needed
+        $configPath = Join-Path $scriptDir "config.json"
+        $scConfigPath = Join-Path $scriptDir "StreamingCommunity\config.json"
+        if (-not (Test-Path $configPath)) {
+            try { Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Arrowar/StreamingCommunity/refs/heads/main/config.json" -OutFile $configPath } catch {}
+        }
+        if (-not (Test-Path $scConfigPath) -and (Test-Path $configPath)) { 
+            Copy-Item $configPath $scConfigPath -Force 
         }
         '@ | Out-File -FilePath "MultiDownloader/INSTALLA-DIPENDENZE.ps1" -Encoding UTF8
-
-        # Create a launcher batch file for the PowerShell script
-        @'
-        @echo off
-        powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0INSTALLA-DIPENDENZE.ps1"
-        '@ | Out-File -FilePath "MultiDownloader/INSTALLA-DIPENDENZE.bat" -Encoding ASCII
 
     - name: Create launcher
       shell: pwsh
@@ -250,23 +190,39 @@ jobs:
         SolidCompression=yes
         WizardStyle=modern
         PrivilegesRequired=admin
+        SetupIconFile=compiler:SetupClassicIcon.ico
+        WizardImageFile=compiler:WizModernImage-IS.bmp
+        WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
         
         [Languages]
         Name: "english"; MessagesFile: "compiler:Default.isl"
         
+        [Messages]
+        InstallingLabel=Installazione MultiDownloader e dipendenze...
+        
         [Tasks]
-        Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
+        Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+        Name: "installdeps"; Description: "Installa dipendenze (Java, Python, FFmpeg)"; GroupDescription: "Componenti aggiuntivi:"; Flags: checkedonce
         
         [Files]
         Source: "MultiDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
         
         [Icons]
         Name: "{group}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
-        Name: "{group}\Installa Dipendenze"; Filename: "{app}\INSTALLA-DIPENDENZE.bat"
         Name: "{autodesktop}\MultiDownloader"; Filename: "{app}\MultiDownloader.vbs"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13; Tasks: desktopicon
         
         [Run]
-        Filename: "{app}\INSTALLA-DIPENDENZE.bat"; Description: "Installa dipendenze (Java, Python, ffmpeg)"; Flags: postinstall runascurrentuser waituntilterminated
+        Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\INSTALLA-DIPENDENZE.ps1"""; StatusMsg: "Installazione Chocolatey..."; Flags: runhidden waituntilterminated; Tasks: installdeps
+        Filename: "{app}\MultiDownloader.vbs"; Description: "Avvia MultiDownloader"; Flags: postinstall nowait skipifsilent
+        
+        [Code]
+        procedure CurStepChanged(CurStep: TSetupStep);
+        begin
+          if CurStep = ssPostInstall then
+          begin
+            WizardForm.StatusLabel.Caption := 'Configurazione completata!';
+          end;
+        end;
         '@ | Out-File -FilePath "setup.iss" -Encoding ASCII
 
     - name: Build installer
